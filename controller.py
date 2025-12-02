@@ -90,7 +90,8 @@ async def proxy_handler(ws: websockets.WebSocketServerProtocol, path: str, state
             async with websockets.connect(
                 real_url,
                 open_timeout=CONNECT_TIMEOUT,
-                close_timeout=CLOSE_TIMEOUT
+                close_timeout=CLOSE_TIMEOUT,
+                max_size=None,
             ) as chrome_ws:
                 logger.info(f"Proxy connection established for {ws.remote_address}")
                 fwd_task = asyncio.create_task(forward_websocket(ws, chrome_ws))
@@ -173,6 +174,8 @@ async def start_chromium(state: ApplicationState) -> None:
         "--headless=new",
         "--no-sandbox",
         "--disable-gpu",
+        "--disable-notifications",
+        "--disable-features=PushMessaging,BackgroundSync",
         "--disable-dev-shm-usage",
         f"--remote-debugging-address={CHROME_DEBUG_HOST}",
         f"--remote-debugging-port={CHROME_DEBUG_PORT}",
@@ -204,7 +207,8 @@ async def start_websocket_server(state: ApplicationState) -> None:
             PROXY_LISTEN_PORT,
             ping_interval=20,
             ping_timeout=30,
-            close_timeout=10
+            close_timeout=30,
+            max_size=None
         )
         logger.info(f"WebSocket proxy listening on {PROXY_LISTEN_HOST}:{PROXY_LISTEN_PORT}")
     except Exception as e:

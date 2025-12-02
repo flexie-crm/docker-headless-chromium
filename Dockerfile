@@ -61,10 +61,19 @@ RUN useradd -m -u 1000 chromeuser \
     && mkdir -p /home/chromeuser/chrome-data \
     && chown -R chromeuser:chromeuser /home/chromeuser
 
+RUN apt-get update && \
+    apt-get install -y ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
 USER chromeuser
 WORKDIR /home/chromeuser
 COPY controller.py .
 
+RUN mkdir -p /tmp/xdg && \
+    chmod 700 /tmp/xdg
+
+ENV XDG_RUNTIME_DIR=/tmp/xdg    
 ENV PATH="/venv/bin:$PATH"
+
 ENTRYPOINT ["dumb-init", "/venv/bin/python3", "controller.py"]
 
